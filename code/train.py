@@ -4,8 +4,11 @@ from torchvision.io import decode_image
 from torchvision.io.image import ImageReadMode
 import helper
 
-# import datasets
+# Check if device has CUDA
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("using: " + device)
 
+# import datasets
 dataset = datasets.ImageFolder("traindata")
 print(dataset)
 
