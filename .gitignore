@@ -1,15 +1,15 @@
 .DS_Store
-*/.DS_Store
+**/.DS_Store
 
-*/traindata
+**/traindata
 traindata
-traindata/*
+traindata/**
 
-*/testdata
+**/testdata
 testdata
-testdata/*
+testdata/**
 
 .idea
-*/idea
+**/idea
 
-*/model.pth
+**/model.pth
