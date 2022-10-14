@@ -11,3 +11,5 @@ testdata/*
 
 .idea
 */idea
+
+*/model.pth
