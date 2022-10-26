@@ -12,4 +12,6 @@ testdata/**
 .idea
 **/idea
 
-**/model.pth
+**/**.pth
+
+**/**.png
