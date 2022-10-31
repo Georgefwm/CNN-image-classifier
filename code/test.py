@@ -1,18 +1,13 @@
+import sys
+
 import torch
-from torchvision import datasets, transforms, utils
+from torchvision import datasets, transforms
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import matplotlib.pyplot as plt
-import numpy as np
-import seaborn as sns
 import pandas as pd
 from torch.utils.data import random_split
-import time
+
 
 def main():
-
-
     desired_batch_size = 16
 
     test_transform = transforms.Compose([
@@ -169,28 +164,14 @@ def main():
             x = self.fc3(x)
             return x
 
+    print("Loading model...")
     model_save_path = "model.pth"
     cnn_model = CNN()
     cnn_model.load_state_dict(torch.load(model_save_path))
     cnn_model.eval()
+    print("Done \n")
 
-    correct = 0
-    total = 0
-    # since we're not training, we don't need to calculate the gradients for our outputs
-    with torch.no_grad():
-        for data in test_loader:
-            images, labels = data
-            # calculate outputs by running images through the network
-            outputs = cnn_model(images)
-            # the class with the highest energy is what we choose as prediction
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-
-    print(f'Accuracy of the network on the 900 validation images: {100 * correct // total} %')
-
-
-
+    print("Evaluating overall accuracy...")
     # prepare to count predictions for each class
     classes = test_dataset.classes
     correct_pred = {classname: 0 for classname in classes}
@@ -213,9 +194,16 @@ def main():
                 total_pred[classes[label]] += 1
 
     # print accuracy for each class
+    average_acc = 0
     for classname, correct_count in correct_pred.items():
         accuracy = 100 * float(correct_count) / total_pred[classname]
+        average_acc += accuracy
         print(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
 
+    average_acc /= len(classes)
+    print(f'Average Accuracy: {average_acc:.1f} %')
 
+
+if __name__ == "__main__":
+    main()
 

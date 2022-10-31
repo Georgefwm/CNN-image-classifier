@@ -36,10 +36,35 @@ def get_img_mean_std(loader) -> float:
     return mean, std
 
 
+def print_graph(train_y, val_y, stop_point, title):
+    # Generate Loss over epochs graph
+    x = range(len(train_y))
+
+    # plot params
+    plt.rcParams["figure.figsize"] = (5, 5)
+    plt.rcParams['figure.dpi'] = 100
+    plt.grid(visible=None)
+
+    plt.plot(x, train_y.to_numpy(), label="Train")
+    plt.plot(x, val_y.to_numpy(), label="Validation")
+    plt.axvline(x=stop_point, label="Selected point", color="g", linestyle="--")
+
+    plt.title(title, fontsize=18)
+    plt.xlabel("Epochs", fontsize=14)
+    plt.legend()
+
+    plt.savefig(title + ".png")
+    print("Graph generated, saved as '" + title + ".png'")
+    plt.clf()
+
+
 def main():
     # Check if device has CUDA
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print("using: " + str(device))
+    if str(device) == "cuda":
+        print("CUDA detected\n")
+    else:
+        print("CUDA not detected, using CPU\n")
 
     # define the base transformation to calculate mean and std deviation of the training set
     initial_train_transform = transforms.Compose([
@@ -58,11 +83,11 @@ def main():
 
     # show what classes have been identified
     classes = original_train_dataset.classes
-    print("Classes: " + str(classes))
+    print("Classes: " + str(classes) + "\n")
 
-    print("Calculating mean and std in training set")
+    print("Calculating mean and std in training set...")
     train_mean, train_std = get_img_mean_std(full_train_loader)
-    print("Done \nUsing: mean: " + str(train_mean) + ", std: " + str(train_std))
+    print("Done. Using mean: " + str(train_mean) + ", std: " + str(train_std) + "\n")
 
     # define train and validation transformations
     train_transform = transforms.Compose([
@@ -247,9 +272,13 @@ def main():
     # set file name for model
     model_save_path = "model.pth"
 
-    # iterate over the dataset
+    # for best stopping point
     best_val_loss = np.inf
+
+    # for graph
     epoch_used = 0
+
+    # for train time metric
     train_time_start = time.time()  # seconds
 
     # stop after this many epochs with no validation improvement
@@ -257,6 +286,8 @@ def main():
     epochs_with_no_improv = 0
 
     cnn_train_history = pd.DataFrame(columns=["train_loss", "train_accuracy", "val_loss", "val_accuracy"])
+
+    print("Starting traning...")
 
     for epoch in range(40):
         # train the model
@@ -336,45 +367,17 @@ def main():
     print("Finished Training")
     print("Took " + str(round(train_time, 2)) + " minutes\n")
 
-    # Generate Loss over epochs graph
-    x = range(len(cnn_train_history))
+    print_graph(train_y=cnn_train_history["train_loss"],
+                val_y=cnn_train_history["val_loss"],
+                stop_point=epoch_used,
+                title="CNN Loss")
 
-    # plot params
-    plt.rcParams["figure.figsize"] = (5, 5)
-    plt.rcParams['figure.dpi'] = 100
-    plt.grid(visible=None)
+    print_graph(train_y=cnn_train_history["train_accuracy"],
+                val_y=cnn_train_history["val_accuracy"],
+                stop_point=epoch_used,
+                title="CNN Accuracy")
 
-    plt.plot(x, cnn_train_history["train_loss"].to_numpy(), label="Train")
-    plt.plot(x, cnn_train_history["val_loss"].to_numpy(), label="Validation")
-    plt.axvline(x=epoch_used, label="Selected point", color="g", linestyle="--")
-
-    plt.title("CNN Loss", fontsize=18)
-    plt.xlabel("Epochs", fontsize=14)
-    plt.legend()
-
-    plt.savefig("CNN Loss.png")
-    print("Loss graph generated and saved as 'CNN Loss.png'")
-
-    # Generate Accuracy over epochs graph
-    x = range(len(cnn_train_history))
-
-    # plot params
-    plt.rcParams["figure.figsize"] = (5, 5)
-    plt.rcParams['figure.dpi'] = 100
-    plt.grid(visible=None)
-
-    plt.plot(x, cnn_train_history["train_accuracy"].to_numpy(), label="Train")
-    plt.plot(x, cnn_train_history["val_accuracy"].to_numpy(), label="Validation")
-    plt.axvline(x=epoch_used, label="Selected point", color="g", linestyle="--")
-
-    plt.title("CNN Accuracy", fontsize=18)
-    plt.xlabel("Epochs", fontsize=14)
-    plt.legend()
-
-    plt.savefig("CNN Accuracy.png")
-    print("Accuracy graph generated and saved as 'CNN Accuracy.png'\n")
-
-    print("Training script finished, ready for testing")
+    print("\nTraining script finished, ready for testing")
     return
 
 
